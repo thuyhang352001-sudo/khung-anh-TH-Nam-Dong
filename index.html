@@ -19,7 +19,7 @@ button,.file{border:0;border-radius:12px;padding:12px 16px;font-weight:700;backg
 <body>
 <div class="wrap">
 <h1>📸 KHUNG ẢNH TRƯỜNG TIỂU HỌC NAM ĐÔNG</h1>
-<p>Bấm “Chọn ảnh” → kéo ảnh để căn → tải ảnh hoàn chỉnh.</p>
+<p>Bấm “Chọn ảnh” → kéo ảnh để căn → bấm “Tải ảnh”. Trên iPhone, ảnh sẽ mở ở tab mới; nhấn giữ ảnh → Lưu vào Ảnh.</p>
 <div class="controls">
 <label class="file">📷 Chọn ảnh<input id="pick" type="file" accept="image/*"></label>
 <button class="secondary" id="reset">↺ Căn lại</button>
@@ -47,13 +47,22 @@ stage.addEventListener('pointerdown',e=>{if(!photo.src)return;drag=true;sx=e.cli
 stage.addEventListener('pointermove',e=>{if(!drag)return;x=ix+e.clientX-sx;y=iy+e.clientY-sy;render();});
 stage.addEventListener('pointerup',()=>{drag=false;photo.style.cursor='grab';});
 document.getElementById('reset').onclick=fit;
-document.getElementById('download').onclick=()=>{
+document.getElementById('download').onclick=async()=>{
  if(!photo.src){alert('Hãy chọn ảnh trước nhé!');return;}
  const out=document.createElement('canvas'),size=1200;out.width=out.height=size;const c=out.getContext('2d');
  const ratio=size/stage.clientWidth,pw=photo.naturalWidth*scale*ratio,ph=photo.naturalHeight*scale*ratio;
  const px=(stage.clientWidth/2+x)*ratio-pw/2,py=(stage.clientHeight/2+y)*ratio-ph/2;
  c.drawImage(photo,px,py,pw,ph);
- const fr=new Image();fr.onload=()=>{c.drawImage(fr,0,0,size,size);const a=document.createElement('a');a.download='khung-anh-nam-dong.png';a.href=out.toDataURL('image/png');a.click();};fr.src=document.getElementById('frame').src;
+ const fr=new Image();fr.onload=async()=>{
+   c.drawImage(fr,0,0,size,size);
+   const blob=await new Promise(resolve=>out.toBlob(resolve,'image/png'));
+   if(!blob){alert('Không tạo được ảnh. Vui lòng thử lại.');return;}
+   const url=URL.createObjectURL(blob);
+   // iPhone/iPad Safari thường không hỗ trợ tải bằng thẻ <a download>. Mở ảnh ra tab mới để lưu.
+   const w=window.open(url,'_blank');
+   if(!w){alert('Safari đang chặn cửa sổ mới. Hãy cho phép pop-up rồi bấm Tải ảnh lại.');}
+ };
+ fr.src=document.getElementById('frame').src;
 };
 </script>
 </body>
